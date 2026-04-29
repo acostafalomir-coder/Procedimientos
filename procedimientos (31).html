@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Procedimientos Médicos</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:#f8fafc;min-height:100vh;}
+:root{--accent:#0f766e;--light:#ccfbf1;}
+
+/* LOGIN */
+#login-screen{min-height:100vh;background:linear-gradient(135deg,#f0fdf4,#ccfbf1);display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-card{background:#fff;border-radius:20px;padding:48px 40px;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.1);}
+.login-icon{font-size:48px;margin-bottom:16px;}
+.login-card h1{font-size:24px;font-weight:800;color:#111827;margin-bottom:8px;}
+.login-card p{font-size:15px;color:#6b7280;margin-bottom:32px;line-height:1.5;}
+#btn-signin{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:14px 28px;font-size:15px;font-weight:700;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit;}
+#btn-signin:disabled{background:#9ca3af;cursor:default;}
+.login-note{font-size:12px;color:#9ca3af;margin-top:16px;}
+
+/* LOADING */
+#loading-screen{min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#f8fafc;}
+
+/* APP */
+#app-screen{display:none;}
+header{background:var(--accent);padding:20px 24px 0;color:#fff;}
+.header-top{max-width:960px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.header-title small{font-size:11px;font-weight:700;letter-spacing:.12em;opacity:.7;text-transform:uppercase;display:block;}
+.header-title h1{font-size:22px;font-weight:700;margin-top:2px;}
+.header-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.btn-ghost{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block;}
+.btn-white{background:#fff;color:var(--accent);border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.tabs{max-width:960px;margin:0 auto;display:flex;gap:4px;}
+.tab-btn{background:transparent;color:rgba(255,255,255,.8);border:none;border-radius:8px 8px 0 0;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.tab-btn.active{background:#fff;color:var(--accent);}
+.container{max-width:960px;margin:0 auto;padding:24px 16px;}
+
+/* STATS */
+.stats-label{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+.stats-row{display:grid;gap:12px;margin-bottom:12px;}
+.stats-row.cols3{grid-template-columns:repeat(3,1fr);}
+.stats-row.cols4{grid-template-columns:repeat(4,1fr);}
+.stat-card{background:#fff;border-radius:12px;padding:14px 18px;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.stat-card.muted{background:#f8fafc;border:1.5px solid #e5e7eb;}
+.stat-label{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em;}
+.stat-value{font-size:20px;font-weight:700;margin-top:4px;}
+
+/* FILTERS */
+.filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.filters input,.filters select{padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#111827;font-family:inherit;outline:none;background:#fff;}
+.filters input{flex:1;min-width:160px;}
+.btn-sm{background:#f1f5f9;color:#374151;border:none;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;font-family:inherit;}
+
+/* CARDS */
+.proc-list{display:flex;flex-direction:column;gap:10px;}
+.proc-card{border-radius:12px;padding:16px 20px;border:1.5px solid #e5e7eb;border-left-width:4px;background:#fff;}
+.proc-card.pendiente{border-color:#fecaca;border-left-color:#ef4444;background:#fff5f5;}
+.proc-card.parcial{border-color:#fde68a;border-left-color:#f59e0b;background:#fffbeb;}
+.proc-card.completo{border-color:#bbf7d0;border-left-color:#10b981;background:#f0fdf4;}
+.proc-card.sin-ingreso{border-color:#e5e7eb;border-left-color:#9ca3af;background:#f9fafb;}
+.proc-card.sin-monto{border-color:#fecaca;border-left-color:#ef4444;background:#fff5f5;}
+.proc-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;}
+.proc-name{font-weight:700;font-size:15px;color:#111827;}
+.proc-sub{font-size:13px;color:#6b7280;margin-top:2px;}
+.proc-meta{font-size:12px;color:#9ca3af;margin-top:2px;}
+.proc-right{text-align:right;}
+.proc-total{font-weight:700;font-size:16px;color:#111827;}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;margin-top:4px;}
+.badge-green{background:#d1fae5;color:#065f46;}
+.badge-yellow{background:#fef3c7;color:#92400e;}
+.badge-red{background:#fee2e2;color:#991b1b;}
+.badge-gray{background:#f3f4f6;color:#6b7280;}
+.badge-slate{background:#e2e8f0;color:#475569;}
+.pills{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.pill{display:flex;align-items:center;gap:5px;font-size:12px;padding:4px 10px;border-radius:7px;border:1px solid #e5e7eb;}
+.pill.paid{background:#f0fdf4;color:#065f46;border-color:#bbf7d0;}
+.pill.unpaid{background:#fff7ed;color:#92400e;border-color:#fed7aa;}
+.pill.foto{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;cursor:pointer;}
+.proc-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.btn-pago{background:var(--light);color:var(--accent);border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-edit{background:#f1f5f9;color:#374151;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-del{background:#fff1f2;color:#be123c;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.empty{text-align:center;padding:60px 20px;color:#9ca3af;}
+
+/* RESUMEN */
+.resumen{display:flex;flex-direction:column;gap:20px;}
+.res-card{background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.res-card h3{font-weight:700;margin-bottom:16px;font-size:15px;}
+.bar-row{margin-bottom:12px;}
+.bar-labels{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;}
+.bar-track{height:7px;background:#f1f5f9;border-radius:99px;}
+.bar-fill{height:7px;background:var(--accent);border-radius:99px;}
+.pill-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.aseg-pill{background:#f8fafc;border-radius:8px;padding:8px 14px;font-size:13px;border:1px solid #e5e7eb;}
+.mes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
+.mes-card{background:#f8fafc;border-radius:10px;padding:12px 14px;border:1px solid #e5e7eb;}
+.mes-nombre{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;}
+.mes-val{font-size:16px;font-weight:700;color:#111827;margin-top:4px;}
+.mes-count{font-size:11px;color:#9ca3af;margin-top:2px;}
+.estado-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.estado-item{text-align:center;padding:16px;background:#f8fafc;border-radius:10px;}
+
+/* MODAL OVERLAY */
+.overlay{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);z-index:9000;align-items:center;justify-content:center;padding:16px;}
+.overlay.show{display:flex;}
+.modal-box{background:#fff;border-radius:16px;padding:28px;max-width:680px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,.2);}
+.modal-box.wide{max-width:820px;}
+.modal-title{font-weight:700;font-size:18px;margin-bottom:20px;color:#111827;}
+.modal-sub{font-size:14px;color:#6b7280;margin-bottom:20px;margin-top:-12px;}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+.field{margin-bottom:13px;}
+.field.span2{grid-column:span 2;}
+.field label,.flabel{display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;}
+.field input,.field select,.field textarea,
+.finput,.fselect{width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;color:#111827;font-family:inherit;outline:none;background:#fff;}
+input[type=number]{-moz-appearance:textfield;}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.field textarea{min-height:65px;resize:vertical;}
+.toggle-group{display:flex;border:1.5px solid #e5e7eb;border-radius:8px;overflow:hidden;}
+.toggle-group button{flex:1;padding:9px;font-size:13px;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:#fff;color:#6b7280;}
+.toggle-group button.on-si{background:#d1fae5;color:#065f46;}
+.toggle-group button.on-no{background:#f1f5f9;color:#475569;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+.btn-cancel{background:#f1f5f9;color:#374151;border:none;border-radius:8px;padding:10px 20px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-save{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-save:disabled{opacity:.7;cursor:default;}
+
+/* PAGO MODAL SECTIONS */
+.pago-sec{border-radius:12px;padding:16px;margin-bottom:14px;}
+.pago-sec.aseg{border:1.5px solid #c7d2fe;background:#f0f4ff;}
+.pago-sec.pac{border:1.5px solid #bbf7d0;background:#f0fdf4;}
+.pago-sec-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;}
+.pago-sec.aseg .pago-sec-title{color:#3730a3;}
+.pago-sec.pac .pago-sec-title{color:#065f46;}
+.pago-toggle{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;cursor:pointer;margin-bottom:8px;border:1.5px solid transparent;}
+.pago-toggle.on{background:#f0fdf4;border-color:#bbf7d0;}
+.pago-toggle.off{background:#fffbeb;border-color:#fde68a;}
+.circle{width:22px;height:22px;border-radius:50%;border:2px solid #d1d5db;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:900;color:#fff;}
+.circle.on{background:#10b981;border-color:#10b981;}
+.pago-date-row{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;margin-bottom:10px;}
+.fact-row{border-top:1px solid rgba(0,0,0,.08);padding-top:12px;margin-top:4px;display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
+
+/* FOTOS */
+.drop-zone{border:2px dashed #d1d5db;border-radius:10px;padding:20px;text-align:center;cursor:pointer;background:#f9fafb;}
+.drop-zone:hover{border-color:var(--accent);}
+.foto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:10px;}
+.foto-thumb{position:relative;border-radius:8px;overflow:hidden;border:1.5px solid #e5e7eb;}
+.foto-thumb img{width:100%;height:80px;object-fit:cover;display:block;cursor:zoom-in;}
+.foto-thumb .pdf-box{height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;gap:2px;}
+.foto-remove{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:18px;height:18px;color:#fff;font-size:11px;cursor:pointer;}
+.foto-view-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.foto-view-item{border-radius:10px;overflow:hidden;border:1.5px solid #e5e7eb;}
+.foto-view-item img{width:100%;height:160px;object-fit:cover;display:block;cursor:zoom-in;}
+.foto-view-pdf{height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:36px;gap:8px;}
+.foto-drive-link{padding:8px 12px;border-top:1px solid #e5e7eb;font-size:12px;}
+.foto-drive-link a{color:var(--accent);font-weight:600;text-decoration:none;}
+
+/* ZOOM */
+#zoom-overlay{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.93);z-index:99999;align-items:center;justify-content:center;cursor:zoom-out;}
+#zoom-overlay.show{display:flex;}
+#zoom-img{max-width:95vw;max-height:92vh;object-fit:contain;border-radius:6px;}
+#zoom-close{position:fixed;top:16px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:22px;cursor:pointer;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;z-index:100000;}
+
+/* TOAST */
+#toast{position:fixed;top:16px;right:16px;z-index:99990;padding:12px 20px;border-radius:10px;font-weight:600;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.12);display:none;}
+#toast.ok{background:#d1fae5;color:#065f46;}
+#toast.err{background:#fee2e2;color:#991b1b;}
+#toast.info{background:#dbeafe;color:#1e40af;}
+
+@media(max-width:600px){
+  .stats-row.cols3,.stats-row.cols4{grid-template-columns:1fr 1fr;}
+  .form-grid{grid-template-columns:1fr;}
+  .field.span2{grid-column:span 1;}
+  .estado-grid{grid-template-columns:repeat(2,1fr);}
+  .pago-date-row,.fact-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-icon">🏥</div>
+    <h1>Procedimientos Médicos</h1>
+    <p>Gestiona tus procedimientos, pagos y notas operatorias. Todo sincronizado con Google Drive.</p>
+    <button id="btn-signin" disabled>Cargando...</button>
+    <div class="login-note">Tus datos se guardan en tu propio Google Drive</div>
+  </div>
+</div>
+
+<div id="loading-screen">
+  <div style="font-size:32px">⚙️</div>
+  <div style="font-weight:600;color:#374151">Configurando Google Drive...</div>
+  <div style="font-size:13px;color:#9ca3af">Esto solo ocurre la primera vez</div>
+</div>
+
+<div id="app-screen">
+  <header>
+    <div class="header-top">
+      <div class="header-title">
+        <small>Radiología Intervencionista</small>
+        <h1>Procedimientos Médicos</h1>
+      </div>
+      <div class="header-actions">
+        <span id="sync-ind" style="font-size:12px;opacity:.8"></span>
+        <a id="link-sheets" href="#" target="_blank" class="btn-ghost">↗ Sheets</a>
+        <button onclick="openForm()" class="btn-white">+ Nuevo</button>
+        <button onclick="doSignOut()" class="btn-ghost">Salir</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="setTab('lista',this)">📋 Lista</button>
+      <button class="tab-btn" onclick="setTab('resumen',this)">📊 Resumen</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="stats-label" style="margin-top:0">💰 Financiero</div>
+    <div class="stats-row cols3" style="margin-bottom:20px">
+      <div class="stat-card"><div class="stat-label">Total generado</div><div class="stat-value" id="s-total" style="color:#1e293b">—</div></div>
+      <div class="stat-card"><div class="stat-label">Cobrado</div><div class="stat-value" id="s-cobrado" style="color:#065f46">—</div></div>
+      <div class="stat-card"><div class="stat-label">Por cobrar</div><div class="stat-value" id="s-pendiente" style="color:#b45309">—</div></div>
+    </div>
+    <div class="stats-label">📋 Actividad clínica</div>
+    <div class="stats-row cols4" style="margin-bottom:24px">
+      <div class="stat-card muted"><div class="stat-label">Total realizados</div><div class="stat-value" id="s-total-p" style="color:#374151">—</div></div>
+      <div class="stat-card muted"><div class="stat-label">Con ingreso</div><div class="stat-value" id="s-con-ing" style="color:#0f766e">—</div></div>
+      <div class="stat-card muted"><div class="stat-label">Solo registro</div><div class="stat-value" id="s-sin-ing" style="color:#6b7280">—</div></div>
+      <div class="stat-card muted"><div class="stat-label">Monto recibido</div><div class="stat-value" id="s-recibido" style="color:#0f766e">—</div></div>
+    </div>
+
+    <div id="tab-lista">
+      <div class="filters">
+        <input type="text" id="f-search" placeholder="Buscar paciente, procedimiento, hospital..." oninput="renderList()"/>
+        <select id="f-estado" onchange="renderList()">
+          <option value="todos">Todos los estados</option>
+          <option value="pendiente">○ Pendientes</option>
+          <option value="parcial">◑ Parciales</option>
+          <option value="completo">✓ Cobrados</option>
+        </select>
+        <select id="f-ingreso" onchange="renderList()">
+          <option value="todos">Con y sin ingreso</option>
+          <option value="si">Solo con ingreso</option>
+          <option value="no">Solo registro</option>
+        </select>
+        <select id="f-star" onchange="renderList()">
+          <option value="todos">Todos</option>
+          <option value="si">⭐ Destacados</option>
+        </select>
+        <select id="f-hospital" onchange="renderList()"><option value="todos">Todos los hospitales</option></select>
+        <select id="f-aseg" onchange="renderList()"><option value="todos">Todas las aseguradoras</option></select>
+        <select id="f-mes" onchange="renderList()"><option value="todos">Todos los meses</option></select>
+        <button class="btn-sm" onclick="loadSheet()">↺</button>
+      </div>
+      <div id="proc-list" class="proc-list"></div>
+    </div>
+
+    <div id="tab-resumen" style="display:none" class="resumen">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="res-card"><h3>Por hospital</h3><div id="r-hospital"></div></div>
+        <div class="res-card"><h3>Por aseguradora</h3><div id="r-aseg" class="pill-grid"></div></div>
+      </div>
+      <div class="res-card"><h3>Por mes</h3><div id="r-mes" class="mes-grid"></div></div>
+      <div class="res-card"><h3>Estado de cobros</h3><div id="r-estado" class="estado-grid"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REGISTRO -->
+<div class="overlay" id="ov-form" onclick="if(event.target===this)closeOverlay('ov-form')">
+  <div class="modal-box">
+    <div class="modal-title" id="form-title">Nuevo procedimiento</div>
+    <div class="form-grid">
+      <div class="field"><label>Fecha *</label><input type="date" id="ff-fecha"/></div>
+      <div class="field"><label>Paciente *</label><input type="text" id="ff-paciente" placeholder="Nombre completo"/></div>
+      <div class="field span2"><label>Diagnóstico</label><input type="text" id="ff-diag" placeholder="Diagnóstico principal"/></div>
+      <div class="field span2"><label>Procedimiento *</label><input type="text" id="ff-proc" placeholder="Tipo de procedimiento"/></div>
+      <div class="field">
+        <label>Hospital *</label>
+        <select id="ff-hospital">
+          <option value="">Seleccionar...</option>
+          <option>ABC - SF</option><option>ABC - OBS</option><option>HAP</option><option>Médica Sur</option>
+          <option>NOVICS</option><option>HMG</option><option>San Angel Inn Sur</option><option>San Ángel Inn universidad</option>
+          <option>Ángeles Lomas</option><option>Ángeles México</option><option>Angeles Acoxpa</option><option>Angeles Universidad</option>
+          <option>Angeles Linda Vista</option><option>HIP</option><option>Escandon</option><option>MAC</option>
+          <option>Guadalajara</option><option>Queretaro</option><option>Pachuca</option><option>Star médica lomas verdes</option>
+          <option>Grand Roma</option><option>Clinica Londres</option><option>DioMed</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Puesto</label>
+        <select id="ff-puesto">
+          <option value="">Seleccionar...</option>
+          <option>1er ayudante</option><option>2do ayudante</option><option>Intervencionista</option>
+        </select>
+      </div>
+      <div class="field span2">
+        <label>¿Genera ingreso para mí?</label>
+        <div class="toggle-group">
+          <button id="tg-si" onclick="setIngreso('Si')" class="on-si">💰 Sí, genera ingreso</button>
+          <button id="tg-no" onclick="setIngreso('No')">📋 No, solo registro</button>
+        </div>
+      </div>
+      <div class="field span2" style="margin-top:4px">
+        <label>¿Caso destacado?</label>
+        <div class="toggle-group">
+          <button id="tg-star-no" onclick="setStar(false)" class="on-no">Sin destacar</button>
+          <button id="tg-star-si" onclick="setStar(true)">⭐ Caso destacado</button>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>📎 Nota operatoria</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <div class="drop-zone" style="flex:1" onclick="document.getElementById('foto-input').click()" ondragover="event.preventDefault()" ondrop="onDrop(event)">
+          <div style="font-size:22px;margin-bottom:4px">📎</div>
+          <div style="font-size:12px;font-weight:600;color:#374151">Galería / Archivo</div>
+        </div>
+        <div class="drop-zone" style="flex:1" onclick="document.getElementById('foto-camera').click()">
+          <div style="font-size:22px;margin-bottom:4px">📷</div>
+          <div style="font-size:12px;font-weight:600;color:#374151">Tomar foto</div>
+        </div>
+      </div>
+      <input type="file" id="foto-input" accept="image/*,application/pdf" multiple style="display:none" onchange="onFiles(this.files)"/>
+      <input type="file" id="foto-camera" accept="image/*" capture="environment" style="display:none" onchange="onFiles(this.files)"/>
+      <div class="foto-grid" id="foto-preview"></div>
+    </div>
+    <div class="field"><label>Notas</label><textarea id="ff-notas" placeholder="Observaciones..."></textarea></div>
+    <div id="proc-imgs-section" style="display:none">
+      <div class="field">
+        <label>🔬 Imágenes del procedimiento (fluoroscopias, resultados, etc.)</label>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <div class="drop-zone" style="flex:1" onclick="document.getElementById('proc-img-input').click()" ondragover="event.preventDefault()" ondrop="onDropProcImg(event)">
+            <div style="font-size:22px;margin-bottom:4px">🔬</div>
+            <div style="font-size:12px;font-weight:600;color:#374151">Galería / Archivo</div>
+          </div>
+          <div class="drop-zone" style="flex:1" onclick="document.getElementById('proc-img-camera').click()">
+            <div style="font-size:22px;margin-bottom:4px">📷</div>
+            <div style="font-size:12px;font-weight:600;color:#374151">Tomar foto</div>
+          </div>
+        </div>
+        <input type="file" id="proc-img-input" accept="image/*,application/pdf" multiple style="display:none" onchange="onProcImgFiles(this.files)"/>
+        <input type="file" id="proc-img-camera" accept="image/*" capture="environment" style="display:none" onchange="onProcImgFiles(this.files)"/>
+        <div class="foto-grid" id="proc-img-preview"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeOverlay('ov-form')">Cancelar</button>
+      <button class="btn-save" id="btn-form-save" onclick="submitForm()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAGO -->
+<div class="overlay" id="ov-pago" onclick="if(event.target===this)closeOverlay('ov-pago')">
+  <div class="modal-box">
+    <div class="modal-title">Actualizar pago</div>
+    <div class="modal-sub" id="pago-sub"></div>
+
+    <!-- ASEGURADORA -->
+    <div class="pago-sec aseg">
+      <div class="pago-sec-title">🏥 Aseguradora</div>
+      <div style="margin-bottom:10px">
+        <div class="flabel">Aseguradora</div>
+        <select id="p-aseg" class="fselect">
+          <option value="">Seleccionar...</option>
+          <option>Allianz</option><option>Atlas</option><option>AXA</option><option>Banorte</option>
+          <option>BBVA</option><option>Best Doctors</option><option>Bupa</option><option>BX+</option>
+          <option>GNP</option><option>INBURSA</option><option>Mapfre</option><option>MetLife</option>
+          <option>Plan seguro</option><option>Seguros Monterrey</option><option>VUMI</option>
+          <option>Zurich</option><option>Otra</option>
+        </select>
+      </div>
+      <div style="margin-bottom:10px">
+        <div class="flabel">Honorarios aseguradora ($)</div>
+        <input type="number" id="p-hon" class="finput" placeholder="0" oninput="calcComision('aseg')"/>
+      </div>
+      <div style="margin-bottom:10px">
+        <div class="flabel">Monto recibido ($) — después de comisión terminal</div>
+        <input type="number" id="p-recibido-aseg" class="finput" placeholder="0" oninput="calcComision('aseg')"/>
+        <div id="comision-aseg" style="font-size:12px;color:#92400e;margin-top:4px;font-weight:600"></div>
+      </div>
+      <div class="pago-toggle off" id="pt-aseg" onclick="togglePago('aseg')">
+        <div class="circle" id="pc-aseg"></div>
+        <span style="font-size:14px;font-weight:600;color:#111827">Pago recibido de aseguradora</span>
+      </div>
+      <div id="pd-aseg" style="display:none">
+        <div class="pago-date-row">
+          <div>
+            <div class="flabel">Fecha de pago</div>
+            <input type="date" id="p-fecha-aseg" class="finput"/>
+          </div>
+          <div>
+            <div class="flabel">Forma de pago</div>
+            <select id="p-forma-aseg" class="fselect">
+              <option value="">Seleccionar...</option>
+              <option>Transferencia</option><option>Tarjeta de crédito</option>
+              <option>Tarjeta de débito</option><option>Efectivo</option><option>Cheque</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="fact-row">
+        <div>
+          <div class="flabel">Número factura aseguradora</div>
+          <input type="text" id="p-fact-aseg" class="finput" placeholder="F-2026-001"/>
+        </div>
+        <div>
+          <div class="flabel">Estatus factura</div>
+          <select id="p-est-aseg" class="fselect">
+            <option value="">Sin acción</option>
+            <option>Factura emitida</option>
+            <option>Complemento enviado</option>
+            <option>No requiere complemento</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- PACIENTE -->
+    <div class="pago-sec pac">
+      <div class="pago-sec-title">👤 Paciente</div>
+      <div style="margin-bottom:10px">
+        <div class="flabel">Diferencia paciente ($)</div>
+        <input type="number" id="p-dif" class="finput" placeholder="0" oninput="calcComision('pac')"/>
+      </div>
+      <div style="margin-bottom:10px">
+        <div class="flabel">Monto recibido ($) — después de comisión terminal</div>
+        <input type="number" id="p-recibido-pac" class="finput" placeholder="0" oninput="calcComision('pac')"/>
+        <div id="comision-pac" style="font-size:12px;color:#92400e;margin-top:4px;font-weight:600"></div>
+      </div>
+      <div class="pago-toggle off" id="pt-pac" onclick="togglePago('pac')">
+        <div class="circle" id="pc-pac"></div>
+        <span style="font-size:14px;font-weight:600;color:#111827">Pago recibido del paciente</span>
+      </div>
+      <div id="pd-pac" style="display:none">
+        <div class="pago-date-row">
+          <div>
+            <div class="flabel">Fecha de pago</div>
+            <input type="date" id="p-fecha-pac" class="finput"/>
+          </div>
+          <div>
+            <div class="flabel">Forma de pago</div>
+            <select id="p-forma-pac" class="fselect">
+              <option value="">Seleccionar...</option>
+              <option>Transferencia</option><option>Tarjeta de crédito</option>
+              <option>Tarjeta de débito</option><option>Efectivo</option><option>Cheque</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="fact-row">
+        <div>
+          <div class="flabel">Número factura paciente</div>
+          <input type="text" id="p-fact-pac" class="finput" placeholder="F-2026-002"/>
+        </div>
+        <div>
+          <div class="flabel">Estatus factura</div>
+          <select id="p-est-pac" class="fselect">
+            <option value="">Sin acción</option>
+            <option>Factura emitida</option>
+            <option>Complemento enviado</option>
+            <option>No requiere complemento</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeOverlay('ov-pago')">Cancelar</button>
+      <button class="btn-save" id="btn-pago-save" onclick="savePago()">Guardar y sincronizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FOTOS -->
+<div class="overlay" id="ov-fotos" onclick="if(event.target===this)closeOverlay('ov-fotos')">
+  <div class="modal-box wide">
+    <div class="modal-title">📎 Documentos</div>
+    <div class="modal-sub" id="fotos-sub"></div>
+    <div class="foto-view-grid" id="fotos-grid"></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeOverlay('ov-fotos')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- ZOOM -->
+<div id="zoom-overlay" onclick="closeZoom()">
+  <button id="zoom-close" onclick="event.stopPropagation();closeZoom()">×</button>
+  <img id="zoom-img" src="" alt=""/>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const CLIENT_ID="956093357912-op6gklr78dbjuc94btmnidoc0ub2p76e.apps.googleusercontent.com";
+const SCOPES="https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
+const FOLDER="Procedimientos Médicos";
+const SHEET="Procedimientos";
+const MESES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const HEADERS=["ID","Fecha","Paciente","Diagnóstico","Procedimiento","Hospital","Puesto","Genera ingreso","Caso destacado","Aseguradora","Total honorarios","Honorarios aseguradora","Diferencia paciente","Total","Pago aseguradora","Fecha pago aseguradora","Forma pago aseguradora","Monto recibido aseguradora","Pago paciente","Fecha pago paciente","Forma pago paciente","Monto recibido paciente","Factura aseguradora","Estatus factura aseguradora","Factura paciente","Estatus factura paciente","Notas operatorias Drive","Fotos procedimiento Drive","Notas"];
+
+let procs=[], sheetId=localStorage.getItem("sid")||"", folderId=localStorage.getItem("fid")||"";
+let editId=null, pendingFotos=[], pendingProcImgs=[], pagoId=null, isStarred=false;
+let pagoAseg=false, pagoPac=false;
+let ingreso="Si";
+let gapiOk=false, gisOk=false, tc;
+
+// ── UTILS ──
+const fmt=v=>{const n=parseFloat(v);if(!v||isNaN(n)||n===0)return"—";return new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN",minimumFractionDigits:0}).format(n);};
+const localDate=()=>new Date().toLocaleDateString("en-CA");
+const getTotal=p=>(parseFloat(p.honAseg)||0)+(parseFloat(p.difPac)||0)||(parseFloat(p.totalHon)||0);
+const getCobrado=p=>{let c=0;if(p.pagoAseg)c+=parseFloat(p.honAseg)||parseFloat(p.totalHon)||0;if(p.pagoPac)c+=parseFloat(p.difPac)||0;return c;};
+const getRecibido=p=>(parseFloat(p.recibidoAseg)||0)+(parseFloat(p.recibidoPac)||0);
+function getEstado(p){
+  if(p.ingreso==="No")return"sin-ingreso";
+  const tot=getTotal(p);
+  if(!tot)return"sin-monto";
+  const ha=(parseFloat(p.honAseg)||parseFloat(p.totalHon))>0;
+  const hp=parseFloat(p.difPac)>0;
+  if(ha&&hp){if(p.pagoAseg&&p.pagoPac)return"completo";if(p.pagoAseg||p.pagoPac)return"parcial";return"pendiente";}
+  if(ha)return p.pagoAseg?"completo":"pendiente";
+  if(hp)return p.pagoPac?"completo":"pendiente";
+  return"pendiente";
+}
+function badgeHtml(e){
+  const m={completo:{c:"badge-green",l:"✓ Cobrado"},parcial:{c:"badge-yellow",l:"◑ Parcial"},pendiente:{c:"badge-red",l:"○ Pendiente"},"sin-monto":{c:"badge-red",l:"○ Pendiente"},"sin-ingreso":{c:"badge-slate",l:"📋 Solo registro"}};
+  const s=m[e]||m.pendiente;return`<span class="badge ${s.c}">${s.l}</span>`;
+}
+function toast(msg,type="ok"){const t=document.getElementById("toast");t.textContent=msg;t.className=type;t.style.display="block";setTimeout(()=>t.style.display="none",3000);}
+function setSyncing(v){document.getElementById("sync-ind").textContent=v?"⟳ Sincronizando...":"";}
+
+// ── GOOGLE AUTH ──
+window.addEventListener("load",()=>{
+  const s1=document.createElement("script");s1.src="https://apis.google.com/js/api.js";
+  s1.onload=()=>gapi.load("client",async()=>{
+    await gapi.client.init({});
+    await gapi.client.load("https://sheets.googleapis.com/$discovery/rest?version=v4");
+    await gapi.client.load("https://www.googleapis.com/discovery/v1/apis/drive/v3/rest");
+    gapiOk=true;checkReady();
+  });
+  document.body.appendChild(s1);
+  const s2=document.createElement("script");s2.src="https://accounts.google.com/gsi/client";
+  s2.onload=()=>{
+    tc=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPES,callback:async r=>{if(!r.error){await setup();showApp();}}});
+    gisOk=true;checkReady();
+  };
+  document.body.appendChild(s2);
+});
+
+function checkReady(){
+  if(!gapiOk||!gisOk)return;
+  const b=document.getElementById("btn-signin");
+  b.disabled=false;
+  b.innerHTML='<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13 24 13c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.4-5l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-8H6.3C9.7 35.7 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.8l6.2 5.2C40.8 35.6 44 30.2 44 24c0-1.3-.1-2.7-.4-4z"/></svg> Conectar con Google';
+  b.onclick=()=>tc.requestAccessToken({prompt:"consent"});
+}
+
+function showApp(){document.getElementById("login-screen").style.display="none";document.getElementById("loading-screen").style.display="none";document.getElementById("app-screen").style.display="block";}
+function showLoading(){document.getElementById("login-screen").style.display="none";document.getElementById("loading-screen").style.display="flex";}
+function doSignOut(){const t=gapi.client.getToken();if(t)google.accounts.oauth2.revoke(t.access_token,()=>{});gapi.client.setToken(null);localStorage.removeItem("sid");localStorage.removeItem("fid");location.reload();}
+
+async function setup(){
+  showLoading();
+  try{
+    let fid=folderId;
+    if(!fid){
+      const r=await gapi.client.drive.files.list({q:`name='${FOLDER}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,fields:"files(id)"});
+      fid=r.result.files.length>0?r.result.files[0].id:(await gapi.client.drive.files.create({resource:{name:FOLDER,mimeType:"application/vnd.google-apps.folder"},fields:"id"})).result.id;
+      folderId=fid;localStorage.setItem("fid",fid);
+    }
+    let sid=sheetId;
+    if(!sid){
+      const r=await gapi.client.drive.files.list({q:`name='${SHEET}' and '${fid}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`,fields:"files(id)"});
+      if(r.result.files.length>0){sid=r.result.files[0].id;}
+      else{
+        const c=await gapi.client.sheets.spreadsheets.create({resource:{properties:{title:SHEET},sheets:[{properties:{title:SHEET}}]}});
+        sid=c.result.spreadsheetId;
+        await gapi.client.drive.files.update({fileId:sid,addParents:fid,fields:"id,parents"});
+        await gapi.client.sheets.spreadsheets.values.update({spreadsheetId:sid,range:`${SHEET}!A1`,valueInputOption:"RAW",resource:{values:[HEADERS]}});
+      }
+      sheetId=sid;localStorage.setItem("sid",sid);
+    }
+    document.getElementById("link-sheets").href=`https://docs.google.com/spreadsheets/d/${sheetId}`;
+    await verifyHeaders();
+    await loadSheet();
+  }catch(e){console.error(e);toast("Error conectando con Google","err");}
+}
+
+async function verifyHeaders(){
+  try{
+    const r=await gapi.client.sheets.spreadsheets.values.get({spreadsheetId:sheetId,range:`${SHEET}!A1:Z1`});
+    const existing=(r.result.values||[[]])[0];
+    if(JSON.stringify(existing)!==JSON.stringify(HEADERS)){
+      await gapi.client.sheets.spreadsheets.values.update({spreadsheetId:sheetId,range:`${SHEET}!A1`,valueInputOption:"RAW",resource:{values:[HEADERS]}});
+    }
+  }catch(e){console.error(e);}
+}
+
+async function loadSheet(){
+  try{
+    const r=await gapi.client.sheets.spreadsheets.values.get({spreadsheetId:sheetId,range:`${SHEET}!A2:AC`});
+    const rows=r.result.values||[];
+    procs=rows.filter(r=>r[0]&&r[2]).map((r,i)=>({
+      id:r[0]||"",fecha:r[1]||"",paciente:r[2]||"",diag:r[3]||"",
+      proc:r[4]||"",hospital:r[5]||"",puesto:r[6]||"",
+      ingreso:r[7]||"Si",destacado:r[8]||"No",aseg:r[9]||"",
+      totalHon:r[10]||"",honAseg:r[11]||"",difPac:r[12]||"",
+      pagoAseg:r[14]==="Si"||r[14]==="true",fechaAseg:r[15]||"",formaAseg:r[16]||"",recibidoAseg:r[17]||"",
+      pagoPac:r[18]==="Si"||r[18]==="true",fechaPac:r[19]||"",formaPac:r[20]||"",recibidoPac:r[21]||"",
+      factAseg:r[22]||"",estFactAseg:r[23]||"",
+      factPac:r[24]||"",estFactPac:r[25]||"",
+      fotosLinks:r[26]||"",procImgsLinks:r[27]||"",notas:r[28]||"",
+      fotos:(r[26]||"").split("|").filter(Boolean).map(u=>({driveUrl:u,type:"image/jpeg",name:"Nota"})),
+      procImgs:(r[27]||"").split("|").filter(Boolean).map(u=>({driveUrl:u,type:"image/jpeg",name:"Imagen"})),
+      rowIndex:i+2
+    }));
+    populateFilters();renderAll();
+  }catch(e){console.error(e);}
+}
+
+async function getProcImgFolder(paciente,fecha){
+  const folderName=`${paciente.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]/g,'_').replace(/_+/g,'_')}_${fecha}`;
+  // Check if subfolder exists
+  let subId=localStorage.getItem('pf_'+folderName);
+  if(!subId){
+    const r=await gapi.client.drive.files.list({q:`name='${folderName}' and '${folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,fields:"files(id)"});
+    if(r.result.files.length>0){subId=r.result.files[0].id;}
+    else{
+      const c=await gapi.client.drive.files.create({resource:{name:folderName,mimeType:"application/vnd.google-apps.folder",parents:[folderId]},fields:"id"});
+      subId=c.result.id;
+    }
+    localStorage.setItem('pf_'+folderName,subId);
+  }
+  return subId;
+}
+
+async function uploadPhoto(foto,paciente,fecha,isProcImg=false){
+  if(!foto.file)return foto.driveUrl||"";
+  const safeName=paciente.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]/g,"_").replace(/_+/g,"_");
+  const newName=`${safeName}_${fecha}_${foto.name}`;
+  const bnd="bnd_med2026";
+  const parentId=isProcImg?await getProcImgFolder(paciente,fecha):folderId;
+  const meta={name:newName,parents:[parentId]};
+  const b64=foto.dataUrl.split(",")[1];
+  const body=`--${bnd}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${bnd}\r\nContent-Type: ${foto.type}\r\nContent-Transfer-Encoding: base64\r\n\r\n${b64}\r\n--${bnd}--`;
+  const res=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink",{
+    method:"POST",headers:{"Authorization":`Bearer ${gapi.client.getToken().access_token}`,"Content-Type":`multipart/related; boundary=${bnd}`},body
+  });
+  const data=await res.json();
+  await fetch(`https://www.googleapis.com/drive/v3/files/${data.id}/permissions`,{
+    method:"POST",headers:{"Authorization":`Bearer ${gapi.client.getToken().access_token}`,"Content-Type":"application/json"},
+    body:JSON.stringify({role:"reader",type:"anyone"})
+  });
+  return data.webViewLink||"";
+}
+
+async function saveRow(p,rowIndex){
+  setSyncing(true);
+  try{
+    const links=[];
+    for(const f of(p.fotos||[])){
+      if(f.driveUrl&&!f.file){links.push(f.driveUrl);continue;}
+      const l=await uploadPhoto(f,p.paciente,p.fecha,false);if(l)links.push(l);
+    }
+    const procLinks=[];
+    for(const f of(p.procImgs||[])){
+      if(f.driveUrl&&!f.file){procLinks.push(f.driveUrl);continue;}
+      const l=await uploadPhoto(f,p.paciente,p.fecha,true);if(l)procLinks.push(l);
+    }
+    const total=(parseFloat(p.honAseg)||0)+(parseFloat(p.difPac)||0)||(parseFloat(p.totalHon)||0);
+    const row=[
+      p.id,p.fecha,p.paciente,p.diag,p.proc,p.hospital,p.puesto,p.ingreso||"Si",p.destacado||"No",p.aseg||"",
+      p.totalHon||"",p.honAseg||"",p.difPac||"",total||"",
+      p.pagoAseg?"Si":"No",p.fechaAseg||"",p.formaAseg||"",p.recibidoAseg||"",
+      p.pagoPac?"Si":"No",p.fechaPac||"",p.formaPac||"",p.recibidoPac||"",
+      p.factAseg||"",p.estFactAseg||"",p.factPac||"",p.estFactPac||"",
+      links.join("|"),procLinks.join("|"),p.notas||""
+    ];
+    if(rowIndex){
+      await gapi.client.sheets.spreadsheets.values.update({spreadsheetId:sheetId,range:`${SHEET}!A${rowIndex}`,valueInputOption:"RAW",resource:{values:[row]}});
+    }else{
+      await gapi.client.sheets.spreadsheets.values.append({spreadsheetId:sheetId,range:`${SHEET}!A1`,valueInputOption:"RAW",insertDataOption:"INSERT_ROWS",resource:{values:[row]}});
+    }
+    toast("Guardado en Google Sheets ✓");
+  }catch(e){console.error(e);toast("Error al guardar","err");}
+  setSyncing(false);
+}
+
+// ── RENDER ──
+function renderAll(){renderStats();renderList();renderResumen();}
+
+function renderStats(){
+  const ci=procs.filter(p=>p.ingreso!=="No");
+  const tot=ci.reduce((s,p)=>s+getTotal(p),0);
+  const cob=ci.reduce((s,p)=>s+getCobrado(p),0);
+  const rec=procs.reduce((s,p)=>s+getRecibido(p),0);
+  document.getElementById("s-total").textContent=fmt(tot);
+  document.getElementById("s-cobrado").textContent=fmt(cob);
+  document.getElementById("s-pendiente").textContent=fmt(tot-cob);
+  document.getElementById("s-total-p").textContent=procs.length;
+  document.getElementById("s-con-ing").textContent=ci.length;
+  document.getElementById("s-sin-ing").textContent=procs.filter(p=>p.ingreso==="No").length;
+  document.getElementById("s-recibido").textContent=fmt(rec);
+}
+
+function populateFilters(){
+  const hosp=[...new Set(procs.map(p=>p.hospital).filter(Boolean))].sort();
+  const aseg=[...new Set(procs.map(p=>p.aseg).filter(Boolean))].sort();
+  const meses=[...new Set(procs.map(p=>p.fecha?p.fecha.substring(0,7):"").filter(Boolean))].sort().reverse();
+  const hs=document.getElementById("f-hospital"),as=document.getElementById("f-aseg"),ms=document.getElementById("f-mes");
+  const curH=hs.value,curA=as.value,curM=ms.value;
+  hs.innerHTML='<option value="todos">Todos los hospitales</option>'+hosp.map(h=>`<option>${h}</option>`).join("");
+  as.innerHTML='<option value="todos">Todas las aseguradoras</option>'+aseg.map(a=>`<option>${a}</option>`).join("");
+  ms.innerHTML='<option value="todos">Todos los meses</option>'+meses.map(m=>{const[y,mo]=m.split("-");return`<option value="${m}">${MESES[parseInt(mo)-1]} ${y}</option>`;}).join("");
+  if(curH)hs.value=curH;if(curA)as.value=curA;if(curM)ms.value=curM;
+}
+
+function renderList(){
+  const q=document.getElementById("f-search").value.toLowerCase();
+  const fe=document.getElementById("f-estado").value;
+  const fi=document.getElementById("f-ingreso").value;
+  const fh=document.getElementById("f-hospital").value;
+  const fa=document.getElementById("f-aseg").value;
+  const fm=document.getElementById("f-mes").value;
+  const filtered=procs.filter(p=>{
+    const ms=!q||[p.paciente,p.proc,p.hospital,p.aseg].some(v=>v&&v.toLowerCase().includes(q));
+    const estado=getEstado(p);
+    const me=fe==="todos"||fe===estado||(fe==="pendiente"&&(estado==="pendiente"||estado==="sin-monto"));
+    const mi=fi==="todos"||(fi==="si"&&p.ingreso!=="No")||(fi==="no"&&p.ingreso==="No");
+    const fstar=document.getElementById("f-star").value;
+    const mstar=fstar==="todos"||(fstar==="si"&&p.destacado==="Si");
+    const mh=fh==="todos"||p.hospital===fh;
+    const maa=fa==="todos"||p.aseg===fa;
+    const mm=fm==="todos"||(p.fecha&&p.fecha.startsWith(fm));
+    return ms&&me&&mi&&mh&&maa&&mm&&mstar;
+  }).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+
+  const list=document.getElementById("proc-list");
+  if(!filtered.length){list.innerHTML='<div class="empty"><div style="font-size:40px;margin-bottom:12px">🗂️</div><div style="font-weight:600">Sin procedimientos</div><div style="font-size:14px;margin-top:4px">Presiona "+ Nuevo" para agregar el primero</div></div>';return;}
+
+  list.innerHTML=filtered.map(p=>{
+    const estado=getEstado(p),tot=getTotal(p),cob=getCobrado(p),rec=getRecibido(p);
+    const sinIng=p.ingreso==="No";
+
+    return`<div class="proc-card ${estado}">
+      <div class="proc-top">
+        <div>
+          <div class="proc-name">${p.destacado==="Si"?"⭐ ":""}${p.paciente}</div>
+          <div class="proc-sub">${p.proc}${p.hospital?" · "+p.hospital:""}</div>
+          <div class="proc-meta">${p.fecha}${p.puesto?" · "+p.puesto:""}${p.aseg?" · "+p.aseg:""}</div>
+        </div>
+        <div class="proc-right">
+          ${sinIng?'<div style="font-size:13px;color:#6b7280;font-weight:600">Sin ingreso</div>':`<div class="proc-total">${fmt(tot)}</div>${rec>0?`<div style="font-size:12px;color:#6b7280">Recibido: ${fmt(rec)}</div>`:""}${estado==="parcial"?`<div style="font-size:12px;color:#6b7280">Cobrado: ${fmt(cob)}</div>`:""}`}
+          ${badgeHtml(estado)}
+        </div>
+      </div>
+      <div class="pills">
+        ${!sinIng&&(parseFloat(p.honAseg)||parseFloat(p.totalHon))>0?`<div class="pill ${p.pagoAseg?"paid":"unpaid"}">${p.pagoAseg?"✓":"○"} Aseguradora ${fmt(p.honAseg||p.totalHon)}${p.fechaAseg?" · "+p.fechaAseg:""}${p.formaAseg?" · "+p.formaAseg:""}${p.estFactAseg?" · "+p.estFactAseg:""}</div>`:""}
+        ${!sinIng&&parseFloat(p.difPac)>0?`<div class="pill ${p.pagoPac?"paid":"unpaid"}">${p.pagoPac?"✓":"○"} Paciente ${fmt(p.difPac)}${p.fechaPac?" · "+p.fechaPac:""}${p.formaPac?" · "+p.formaPac:""}${p.estFactPac?" · "+p.estFactPac:""}</div>`:""}
+        ${(p.fotos&&p.fotos.length>0)||(p.procImgs&&p.procImgs.length>0)?`<div class="pill foto" onclick="viewFotos('${p.id}')">📎 ${(p.fotos||[]).length+(p.procImgs||[]).length} archivo${((p.fotos||[]).length+(p.procImgs||[]).length)!==1?"s":""}</div>`:""}
+      </div>
+      <div class="proc-actions">
+        ${!sinIng?`<button class="btn-pago" onclick="openPagoModal('${p.id}')">Actualizar pago</button>`:""}
+        <button class="btn-edit" onclick="openEditForm('${p.id}')">Editar</button>
+        <button class="btn-del" onclick="deleteProc('${p.id}')">Eliminar</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderResumen(){
+  const ci=procs.filter(p=>p.ingreso!=="No");
+  const tot=ci.reduce((s,p)=>s+getTotal(p),0);
+  const byH={},byA={},byM={};
+  ci.forEach(p=>{
+    if(p.hospital)byH[p.hospital]=(byH[p.hospital]||0)+getTotal(p);
+    if(p.aseg)byA[p.aseg]=(byA[p.aseg]||0)+1;
+    if(p.fecha){const m=p.fecha.substring(0,7);if(!byM[m])byM[m]={t:0,c:0};byM[m].t+=getTotal(p);byM[m].c++;}
+  });
+  document.getElementById("r-hospital").innerHTML=Object.entries(byH).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([h,v])=>`<div class="bar-row"><div class="bar-labels"><span style="font-weight:600">${h}</span><span>${fmt(v)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${tot>0?(v/tot)*100:0}%"></div></div></div>`).join("")||"<span style='color:#9ca3af'>Sin datos</span>";
+  document.getElementById("r-aseg").innerHTML=Object.entries(byA).sort((a,b)=>b[1]-a[1]).map(([a,c])=>`<div class="aseg-pill"><strong>${a}</strong> <span style="color:#6b7280">(${c})</span></div>`).join("")||"<span style='color:#9ca3af'>Sin datos</span>";
+  document.getElementById("r-mes").innerHTML=Object.entries(byM).sort((a,b)=>b[0].localeCompare(a[0])).map(([m,d])=>{const[y,mo]=m.split("-");return`<div class="mes-card"><div class="mes-nombre">${MESES[parseInt(mo)-1]} ${y}</div><div class="mes-val">${fmt(d.t)}</div><div class="mes-count">${d.c} procedimiento${d.c!==1?"s":""}</div></div>`;}).join("")||"<span style='color:#9ca3af'>Sin datos</span>";
+  document.getElementById("r-estado").innerHTML=[{l:"Cobrados",e:"completo",c:"#10b981"},{l:"Parciales",e:"parcial",c:"#f59e0b"},{l:"Pendientes",e:"pendiente",c:"#ef4444"},{l:"Solo registro",e:"sin-ingreso",c:"#6b7280"}].map(s=>`<div class="estado-item"><div style="font-size:28px;font-weight:800;color:${s.c}">${procs.filter(p=>getEstado(p)===s.e).length}</div><div style="font-size:12px;color:#6b7280;margin-top:2px">${s.l}</div></div>`).join("");
+}
+
+function setTab(name,btn){
+  document.getElementById("tab-lista").style.display=name==="lista"?"block":"none";
+  document.getElementById("tab-resumen").style.display=name==="resumen"?"block":"none";
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+// ── OVERLAYS ──
+function openOverlay(id){document.getElementById(id).classList.add("show");}
+function closeOverlay(id){document.getElementById(id).classList.remove("show");}
+
+// ── FORM ──
+function setStar(val){
+  isStarred=val;
+  document.getElementById("tg-star-si").className=val?"on-si":"";
+  document.getElementById("tg-star-no").className=!val?"on-no":"";
+  const sec=document.getElementById("proc-imgs-section");
+  if(sec)sec.style.display=val?"block":"none";
+}
+
+function setIngreso(val){
+  ingreso=val;
+  document.getElementById("tg-si").className=val==="Si"?"on-si":"";
+  document.getElementById("tg-no").className=val==="No"?"on-no":"";
+}
+
+function openForm(){
+  editId=null;pendingFotos=[];ingreso="Si";
+  document.getElementById("form-title").textContent="Nuevo procedimiento";
+  document.getElementById("btn-form-save").textContent="Registrar";
+  document.getElementById("ff-fecha").value=localDate();
+  document.getElementById("ff-paciente").value="";
+  document.getElementById("ff-diag").value="";
+  document.getElementById("ff-proc").value="";
+  document.getElementById("ff-hospital").value="";
+  document.getElementById("ff-puesto").value="";
+  document.getElementById("ff-notas").value="";
+  document.getElementById("foto-preview").innerHTML="";
+  setIngreso("Si");
+  openOverlay("ov-form");
+}
+
+function openEditForm(id){
+  const p=procs.find(r=>r.id===id);if(!p)return;
+  editId=id;pendingFotos=[...(p.fotos||[])];ingreso=p.ingreso||"Si";
+  document.getElementById("form-title").textContent="Editar procedimiento";
+  document.getElementById("btn-form-save").textContent="Guardar cambios";
+  document.getElementById("ff-fecha").value=p.fecha;
+  document.getElementById("ff-paciente").value=p.paciente;
+  document.getElementById("ff-diag").value=p.diag;
+  document.getElementById("ff-proc").value=p.proc;
+  document.getElementById("ff-hospital").value=p.hospital;
+  document.getElementById("ff-puesto").value=p.puesto;
+  document.getElementById("ff-notas").value=p.notas;
+  setIngreso(p.ingreso||"Si");
+  renderFotoPreview();
+  openOverlay("ov-form");
+}
+
+async function submitForm(){
+  const paciente=document.getElementById("ff-paciente").value.trim();
+  const proc=document.getElementById("ff-proc").value.trim();
+  const hospital=document.getElementById("ff-hospital").value;
+  if(!paciente||!proc||!hospital){toast("Completa los campos obligatorios (*)","err");return;}
+  const id=editId||Date.now().toString();
+  const p={
+    id,fecha:document.getElementById("ff-fecha").value,paciente,
+    diag:document.getElementById("ff-diag").value,
+    proc,hospital,puesto:document.getElementById("ff-puesto").value,
+    ingreso,notas:document.getElementById("ff-notas").value,
+    fotos:pendingFotos,
+    procImgs:pendingProcImgs,
+    aseg:"",totalHon:"",honAseg:"",difPac:"",
+    pagoAseg:false,fechaAseg:"",formaAseg:"",recibidoAseg:"",
+    pagoPac:false,fechaPac:"",formaPac:"",recibidoPac:"",
+    factAseg:"",estFactAseg:"",factPac:"",estFactPac:""
+  };
+  if(editId){
+    const old=procs.find(r=>r.id===editId);
+    if(old){p.aseg=old.aseg;p.totalHon=old.totalHon;p.honAseg=old.honAseg;p.difPac=old.difPac;p.pagoAseg=old.pagoAseg;p.fechaAseg=old.fechaAseg;p.formaAseg=old.formaAseg;p.recibidoAseg=old.recibidoAseg;p.pagoPac=old.pagoPac;p.fechaPac=old.fechaPac;p.formaPac=old.formaPac;p.recibidoPac=old.recibidoPac;p.factAseg=old.factAseg;p.estFactAseg=old.estFactAseg;p.factPac=old.factPac;p.estFactPac=old.estFactPac;}
+    const idx=procs.findIndex(r=>r.id===editId);
+    procs[idx]=p;
+    await saveRow(p,p.rowIndex||idx+2);
+  }else{
+    procs.unshift(p);
+    await saveRow(p,null);
+  }
+  closeOverlay("ov-form");renderAll();
+}
+
+// ── PAGO MODAL ──
+function openPagoModal(id){
+  const p=procs.find(r=>r.id===id);if(!p)return;
+  pagoId=id;pagoAseg=p.pagoAseg;pagoPac=p.pagoPac;
+  const totalHonDisplay=p.totalHon?` · Total: ${fmt(p.totalHon)}`:"";
+  document.getElementById("pago-sub").textContent=`${p.paciente} · ${p.proc}${totalHonDisplay}`;
+  document.getElementById("p-aseg").value=p.aseg||"";
+  document.getElementById("p-hon").value=p.honAseg||"";
+  document.getElementById("p-recibido-aseg").value=p.recibidoAseg||"";
+  calcComision("aseg");
+  document.getElementById("p-fecha-aseg").value=p.fechaAseg||"";
+  document.getElementById("p-forma-aseg").value=p.formaAseg||"";
+  document.getElementById("p-fact-aseg").value=p.factAseg||"";
+  document.getElementById("p-est-aseg").value=p.estFactAseg||"";
+  document.getElementById("p-dif").value=p.difPac||"";
+  document.getElementById("p-recibido-pac").value=p.recibidoPac||"";
+  calcComision("pac");
+  document.getElementById("p-fecha-pac").value=p.fechaPac||"";
+  document.getElementById("p-forma-pac").value=p.formaPac||"";
+  document.getElementById("p-fact-pac").value=p.factPac||"";
+  document.getElementById("p-est-pac").value=p.estFactPac||"";
+  updateToggleUI("aseg");updateToggleUI("pac");
+  openOverlay("ov-pago");
+}
+
+function togglePago(which){
+  if(which==="aseg")pagoAseg=!pagoAseg;else pagoPac=!pagoPac;
+  updateToggleUI(which);
+}
+
+function updateToggleUI(which){
+  const on=which==="aseg"?pagoAseg:pagoPac;
+  const tg=document.getElementById(`pt-${which}`);
+  const ci=document.getElementById(`pc-${which}`);
+  const pd=document.getElementById(`pd-${which}`);
+  tg.className=`pago-toggle ${on?"on":"off"}`;
+  ci.className=`circle ${on?"on":""}`;
+  ci.textContent=on?"✓":"";
+  pd.style.display=on?"block":"none";
+}
+
+async function savePago(){
+  const p=procs.find(r=>r.id===pagoId);if(!p)return;
+  const honAsegVal=document.getElementById("p-hon").value;
+  const difPacVal=document.getElementById("p-dif").value;
+  const updated={...p,
+    aseg:document.getElementById("p-aseg").value||p.aseg,
+    honAseg:honAsegVal||p.honAseg,
+    totalHon:honAsegVal&&!difPacVal?"":(p.totalHon||""),
+    recibidoAseg:document.getElementById("p-recibido-aseg").value,
+    difPac:difPacVal||p.difPac,
+    recibidoPac:document.getElementById("p-recibido-pac").value,
+    pagoAseg,fechaAseg:document.getElementById("p-fecha-aseg").value,formaAseg:document.getElementById("p-forma-aseg").value,
+    factAseg:document.getElementById("p-fact-aseg").value,estFactAseg:document.getElementById("p-est-aseg").value,
+    pagoPac,fechaPac:document.getElementById("p-fecha-pac").value,formaPac:document.getElementById("p-forma-pac").value,
+    factPac:document.getElementById("p-fact-pac").value,estFactPac:document.getElementById("p-est-pac").value,
+  };
+  const idx=procs.findIndex(r=>r.id===pagoId);
+  procs[idx]=updated;
+  await saveRow(updated,updated.rowIndex||idx+2);
+  closeOverlay("ov-pago");renderAll();
+}
+
+// ── FOTOS ──
+function onFiles(files){Array.from(files).forEach(f=>readFile(f));}
+function onDrop(e){e.preventDefault();onFiles(e.dataTransfer.files);}
+function readFile(file){
+  if(!file.type.startsWith("image/")&&file.type!=="application/pdf")return;
+  const r=new FileReader();
+  r.onload=e=>{pendingFotos.push({name:file.name,dataUrl:e.target.result,type:file.type,file});renderFotoPreview();};
+  r.readAsDataURL(file);
+}
+function renderFotoPreview(){
+  document.getElementById("foto-preview").innerHTML=pendingFotos.map((f,i)=>`<div class="foto-thumb">${f.type==="application/pdf"?`<div class="pdf-box"><span>📄</span><span style="font-size:10px;color:#6b7280">${f.name}</span></div>`:`<img src="${f.dataUrl||f.driveUrl}" onclick="openZoom(this.src)"/>`}<button class="foto-remove" onclick="removePhoto(${i})">×</button></div>`).join("");
+}
+function removePhoto(i){pendingFotos.splice(i,1);renderFotoPreview();}
+function viewFotos(id){
+  const p=procs.find(r=>r.id===id);if(!p)return;
+  document.getElementById("fotos-sub").textContent=`${p.paciente} · ${p.proc} · ${p.fecha}`;
+  const makeThumb=f=>`<div class="foto-view-item">${f.type==="application/pdf"?`<div class="foto-view-pdf"><span>📄</span><span style="font-size:12px;color:#6b7280">${f.name}</span></div>`:`<img src="${f.dataUrl||f.driveUrl}" onclick="openZoom(this.src)"/>`}${f.driveUrl?`<div class="foto-drive-link"><a href="${f.driveUrl}" target="_blank">↗ Ver en Drive</a></div>`:""}</div>`;
+  const notasHtml=(p.fotos||[]).length>0?`<div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;margin-bottom:8px">📎 Notas operatorias</div><div class="foto-view-grid">${(p.fotos||[]).map(makeThumb).join("")}</div>`:"";
+  const procsHtml=(p.procImgs||[]).length>0?`<div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;margin:16px 0 8px">🔬 Imágenes del procedimiento</div><div class="foto-view-grid">${(p.procImgs||[]).map(makeThumb).join("")}</div>`:"";
+  document.getElementById("fotos-grid").innerHTML=notasHtml+procsHtml||"<span style='color:#9ca3af'>Sin imágenes</span>";
+  openOverlay("ov-fotos");
+}
+function openZoom(src){document.getElementById("zoom-img").src=src;document.getElementById("zoom-overlay").classList.add("show");}
+function closeZoom(){document.getElementById("zoom-overlay").classList.remove("show");}
+
+// ── COMISION ──
+function calcComision(which){
+  const honEl=which==="aseg"?document.getElementById("p-hon"):document.getElementById("p-dif");
+  const recEl=document.getElementById(`p-recibido-${which}`);
+  const dispEl=document.getElementById(`comision-${which}`);
+  const hon=parseFloat(honEl.value)||0;
+  const rec=parseFloat(recEl.value)||0;
+  if(hon>0&&rec>0&&rec<hon){
+    const com=hon-rec;
+    const pct=((com/hon)*100).toFixed(1);
+    dispEl.textContent=`Comisión terminal: ${fmt(com)} (${pct}%)`;
+  } else {
+    dispEl.textContent="";
+  }
+}
+
+// ── PROC IMGS ──
+function onProcImgFiles(files){Array.from(files).forEach(f=>readProcImg(f));}
+function onDropProcImg(e){e.preventDefault();onProcImgFiles(e.dataTransfer.files);}
+function readProcImg(file){
+  if(!file.type.startsWith("image/")&&file.type!=="application/pdf")return;
+  const r=new FileReader();
+  r.onload=e=>{pendingProcImgs.push({name:file.name,dataUrl:e.target.result,type:file.type,file});renderProcImgPreview();};
+  r.readAsDataURL(file);
+}
+function renderProcImgPreview(){
+  const el=document.getElementById("proc-img-preview");
+  if(!el)return;
+  el.innerHTML=pendingProcImgs.map((f,i)=>`<div class="foto-thumb">${f.type==="application/pdf"?`<div class="pdf-box"><span>📄</span><span style="font-size:10px;color:#6b7280">${f.name}</span></div>`:`<img src="${f.dataUrl||f.driveUrl}" onclick="openZoom(this.src)"/>`}<button class="foto-remove" onclick="removeProcImg(${i})">×</button></div>`).join("");
+}
+function removeProcImg(i){pendingProcImgs.splice(i,1);renderProcImgPreview();}
+
+// ── DELETE ──
+async function deleteProc(id){
+  if(!confirm("¿Eliminar este procedimiento?"))return;
+  procs=procs.filter(r=>r.id!==id);
+  toast("Eliminado. Borra la fila manualmente en Sheets si es necesario.","info");
+  renderAll();
+}
+</script>
+</body>
+</html>
